@@ -1,3 +1,4 @@
+#[non_exhaustive]
 pub struct ClientOpcodes;
 
 impl ClientOpcodes {
