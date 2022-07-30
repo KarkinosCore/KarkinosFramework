@@ -1,5 +1,7 @@
+#[non_exhaustive]
 pub struct BattlenetRpcErrorCode;
 
+// TODO: See if these need to be implemented as flags enum instead
 impl BattlenetRpcErrorCode {
     pub const OK: u32 = 0x00000000;
     pub const INTERNAL: u32 = 0x00000001;

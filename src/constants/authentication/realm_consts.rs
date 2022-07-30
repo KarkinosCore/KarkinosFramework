@@ -1,5 +1,9 @@
+use enum_flags::enum_flags;
+
+#[non_exhaustive]
 pub struct RealmFlags;
 
+// TODO: See if these need to be implemented as flags enum
 impl RealmFlags {
     pub const NONE: u32 = 0x00;
     pub const VERSION_MISMATCH: u32 = 0x01;
@@ -12,6 +16,10 @@ impl RealmFlags {
     pub const FULL: u32 = 0x80;
 }
 
+
+#[repr(u8)]
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum RealmType {
     Normal = 0,
     PVP = 1,
@@ -22,6 +30,9 @@ pub enum RealmType {
     FFAPVP = 16,
 }
 
+#[repr(u8)]
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum RealmZones {
     // Any Language
     Unknown = 0,

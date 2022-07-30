@@ -1,4 +1,8 @@
+use enum_flags::enum_flags;
+
 // Player State
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum SessionStatus {
     Authed,
     LoggedIn,
@@ -6,6 +10,8 @@ pub enum SessionStatus {
     LoggedInOrRecentLogout,
 }
 
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum PacketProcessing {
     // Process a packet whenever it is received - mostly for non-handled or non-implemented packets
     Inplace,

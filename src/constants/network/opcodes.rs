@@ -1,6 +1,6 @@
 #[non_exhaustive]
 pub struct ClientOpcodes;
-
+// TODO: See if these need to be implemented as flags enum
 impl ClientOpcodes {
     pub const ABANDON_NPC_RESPONSE: u32 = 0x33e1;
     pub const ACCEPT_GUILD_INVITE: u32 = 0x35fc;

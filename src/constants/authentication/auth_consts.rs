@@ -1,3 +1,8 @@
+use enum_flags::enum_flags;
+
+#[repr(u8)]
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum ResponseCodes {
     Success = 0,
     Failure = 1,
@@ -108,6 +113,9 @@ pub enum ResponseCodes {
     CharNameSpacesDisallowed = 97,
 }
 
+#[repr(u8)]
+#[enum_flags]
+#[derive(Copy, Clone, PartialEq)]
 pub enum CharacterUndeleteResult {
     Ok = 0,
     Cooldown = 1,
