@@ -1,83 +1,59 @@
 use sha2::{Sha256, Digest};
 
-pub struct SessionKeyGenerator<'a> {
-    pub o0: &'a[u8] ,
-    pub o1: &'a[u8],
-    pub o2: &'a[u8],
-    pub taken: u32,
-    pub sh: Sha256,
+pub struct SessionKeyGenerator {
+    pub o0: Vec<u8> ,
+    pub o1: Vec<u8>,
+    pub o2: Vec<u8>,
+    pub taken: usize,
 }
 
-impl<'a> SessionKeyGenerator<'a> {
+impl SessionKeyGenerator {
     pub fn new(buff: &[u8], size: usize) -> Self {
-        let mut key_generator = Self {
-            o0: &[0; 32],
-            o1: &[0; 32],
-            o2: &[0; 32],
+        let half_size = size / 2;
+
+        // Take the first half fo the buffer and hash it.
+        let mut sh = Sha256::new();
+        let mut buff_region = &buff[0..half_size];
+        sh.update(&buff_region);
+
+        // Do the actual hashing and clear the hash state, storing the Vec<u8> of the hash.
+        let o1 = sh.finalize_reset().to_vec();
+
+        // Take the rest of the buffer and hash it
+        buff_region = &buff[half_size..size];
+        sh.update(&buff_region);
+        let o2 = sh.finalize().to_vec();
+
+         let mut key_gen = Self {
+            o0: vec![0; 32],
+            o1,
+            o2,
             taken: 0,
-            sh: Sha256::new(),
         };
-        // let half_size = size / 2;
-        // key_generator.o1 = transform_final_block(&buff, 0, half_size);
-        // key_generator.o2 = transform_final_block(buff, half_size, size - half_size);
 
-        key_generator
+        key_gen.fill_up();
+
+        key_gen
+
     }
 
-    // pub fn generate_key(buff: &[u8], size: i32, sz: u32) -> Result<[u8], Err> {
-    //
-    // }
-}
+    // TODO: Possible optimization, take a Sha256 ref vs allocating new one
+    fn fill_up(&mut self) {
+        let sh = Sha256::new();
+        let hash = sh.chain_update(&self.o1).chain_update(&self.o0).chain_update(&self.o2).finalize();
+        self.o0 = hash.to_vec();
+        self.taken = 0;
+    }
 
-// Computes the hash value for the specified region of the input byte array and copies it
-// to the specified region of the returned byte array.
-// TODO: Update to be more efficient by passing a mutable reference to the output byte array
-// NOTE: This doesn't actually work properly
-pub fn transform_block(input_buffer: &[u8], input_offset: usize, input_count: usize, output_offset: usize) -> Vec<u8> {
-    let mut hasher = Sha256::new();
-    let buff_region = &input_buffer[input_offset..input_count];
-    let mut out_buffer = input_buffer.to_vec();
-
-    hasher.update(buff_region);
-
-    let mut i = 0;
-    let final_hash = hasher.finalize();
-    let hash_slice = &final_hash[..];
-    println!("{:?}", hash_slice);
-    while i < hash_slice.len() {
-        if output_offset + i < out_buffer.len() {
-            out_buffer[output_offset + i] = hash_slice[i];
+    // Generate a key from a given buffer and size.
+    // TODO: Might be more Rusty and clear to return a new &[u8] or Vec<u8> instead of modifying the passed buffer
+    pub fn generate_key(&mut self, buff: &mut [u8], sz: u8) {
+        // TODO: Figure out a more Rusty way of doing this looping
+        for i in 0..sz {
+            if self.taken == 32 {
+                self.fill_up();
+            }
+            buff[i as usize] = self.o0[self.taken];
         }
-        i = i + 1;
     }
-
-    out_buffer.try_into().expect("slice with incorrect length")
-}
-
-// Computes the hash value for the specified region of the given byte array.
-// TODO: Check if we can do this without allocating a temp buffer or hasher.
-fn transform_final_block(buff: &[u8], input_offset: usize, input_count: usize) -> Vec<u8> {
-    let mut hasher = Sha256::new();
-    let buff_region = &buff[input_offset..input_count];
-    hasher.update(buff_region);
-
-    let final_hash = hasher.finalize();
-    let hash_slice = &final_hash[..];
-
-    hash_slice.try_into().expect("slice with incorrect length")
-}
-
-pub fn test_hash(buff: &[u8], buff2: &[u8]) {
-    let mut hasher = Sha256::new();
-    let mut hashed_1 = transform_block(&buff, 0, 32, 0);
-    println!("{:?}", hashed_1);
-    let mut hashed_2 = transform_final_block(&buff2, 0, 32);
-    println!("{:?}", hashed_2);
-    hashed_1.append(&mut hashed_2);
-    println!("{:?}", hashed_1);
-    hasher.update(&hashed_1);
-
-   let final_hash = hasher.finalize();
-    let hash_slice = &final_hash[..];
-    println!("{:?}", hash_slice);
 }
