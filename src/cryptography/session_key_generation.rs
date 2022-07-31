@@ -32,7 +32,7 @@ impl<'a> SessionKeyGenerator<'a> {
 // Computes the hash value for the specified region of the input byte array and copies it
 // to the specified region of the returned byte array.
 // TODO: Update to be more efficient by passing a mutable reference to the output byte array
-// TODO: Dig into C# version of this function to ensure output is correct
+// NOTE: This doesn't actually work properly
 pub fn transform_block(input_buffer: &[u8], input_offset: usize, input_count: usize, output_offset: usize) -> Vec<u8> {
     let mut hasher = Sha256::new();
     let buff_region = &input_buffer[input_offset..input_count];
@@ -46,7 +46,7 @@ pub fn transform_block(input_buffer: &[u8], input_offset: usize, input_count: us
     println!("{:?}", hash_slice);
     while i < hash_slice.len() {
         if output_offset + i < out_buffer.len() {
-            r[output_offset + i] = hash_slice[i];
+            out_buffer[output_offset + i] = hash_slice[i];
         }
         i = i + 1;
     }
@@ -56,10 +56,28 @@ pub fn transform_block(input_buffer: &[u8], input_offset: usize, input_count: us
 
 // Computes the hash value for the specified region of the given byte array.
 // TODO: Check if we can do this without allocating a temp buffer or hasher.
-// fn transform_final_block(buff: &[u8], input_offset: usize, input_count: usize) -> &[u8] {
-//     let mut hasher = Sha256::new();
-//     let buff_region = &buff[input_offset..input_count];
-//     hasher.update(buff_region);
-//
-//     hasher.finalize().to_bytes()
-// }
+fn transform_final_block(buff: &[u8], input_offset: usize, input_count: usize) -> Vec<u8> {
+    let mut hasher = Sha256::new();
+    let buff_region = &buff[input_offset..input_count];
+    hasher.update(buff_region);
+
+    let final_hash = hasher.finalize();
+    let hash_slice = &final_hash[..];
+
+    hash_slice.try_into().expect("slice with incorrect length")
+}
+
+pub fn test_hash(buff: &[u8], buff2: &[u8]) {
+    let mut hasher = Sha256::new();
+    let mut hashed_1 = transform_block(&buff, 0, 32, 0);
+    println!("{:?}", hashed_1);
+    let mut hashed_2 = transform_final_block(&buff2, 0, 32);
+    println!("{:?}", hashed_2);
+    hashed_1.append(&mut hashed_2);
+    println!("{:?}", hashed_1);
+    hasher.update(&hashed_1);
+
+   let final_hash = hasher.finalize();
+    let hash_slice = &final_hash[..];
+    println!("{:?}", hash_slice);
+}

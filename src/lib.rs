@@ -26,8 +26,8 @@ mod tests {
 
     #[test]
     fn test_transform_block() {
-        let input_buff = [1; 32];
-        let out_buff = session_key_generation::transform_block(&input_buff, 0, 9, 9);
-        println!("{:?}", out_buff);
+        let input_buff = [0; 32];
+        let input_buff2 = [32; 32];
+        session_key_generation::test_hash(&input_buff, &input_buff2);
     }
 }
