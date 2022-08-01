@@ -54,6 +54,7 @@ impl SessionKeyGenerator {
                 self.fill_up();
             }
             buff[i as usize] = self.o0[self.taken];
+            self.taken = self.taken + 1;
         }
     }
 }
