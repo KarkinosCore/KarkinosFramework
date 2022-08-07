@@ -9,3 +9,11 @@ edition = "2021"
 aes-gcm = "0.9.4"
 enum-flags = "0.3.0"
 sha2 = "0.10.2"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "crypto_benchmarks"
+harness = false
+
